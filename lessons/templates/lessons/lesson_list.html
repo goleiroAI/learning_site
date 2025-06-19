@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>レッスン一覧</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<h1>レッスン一覧</h1>
+<div class="nav-box">
+  <select id="chapterFilter">
+    <option value="">すべての章</option>
+    <option value="第1章">第1章</option>
+    <option value="第2章">第2章</option>
+    <option value="第3章">第3章</option>
+    <option value="第4章">第4章</option>
+    <option value="第5章">第5章</option>
+  </select>
+
+  <label>
+    <input type="checkbox" id="incompleteOnly" />
+    未理解のレッスンだけ表示
+  </label>
+
+  <br>
+  <input type="text" id="searchInput" placeholder="レッスンを検索..." style="width: 40%; margin-top: 10px;" />
+</div>
+
+<ul>
+  {% for lesson in lessons %}
+    <li>
+      <strong>{{ lesson.chapter }} {{ lesson.number }}</strong><br>
+      <a href="{% url 'lesson_detail' pk=lesson.pk %}">{{ lesson.title }}</a>
+      <span id="status-{{ lesson.pk }}"></span>
+    </li>
+  {% endfor %}
+</ul>
+
+<!-- スクリプト -->
+<script>
+  {% for lesson in lessons %}
+    const done{{ lesson.pk }} = localStorage.getItem("lesson-{{ lesson.pk }}-done");
+    const statusEl{{ lesson.pk }} = document.getElementById("status-{{ lesson.pk }}");
+    if (done{{ lesson.pk }} === "true") {
+      statusEl{{ lesson.pk }}.textContent = " ✅理解";
+    }
+  {% endfor %}
+
+  const input = document.getElementById("searchInput");
+  const chapterFilter = document.getElementById("chapterFilter");
+  const incompleteCheckbox = document.getElementById("incompleteOnly");
+
+  function filterLessons() {
+    const filter = input.value.toLowerCase();
+    const selectedChapter = chapterFilter.value;
+    const showOnlyIncomplete = incompleteCheckbox.checked;
+    const items = document.querySelectorAll("ul li");
+
+    items.forEach((item) => {
+      const text = item.textContent.toLowerCase();
+      const chapterMatch = !selectedChapter || text.includes(selectedChapter);
+      const textMatch = text.includes(filter);
+      const pkMatch = item.querySelector("a")?.getAttribute("href")?.match(/\/lessons\/(\d+)\//);
+      const lessonId = pkMatch ? pkMatch[1] : null;
+      const isUnderstood = localStorage.getItem(`lesson-${lessonId}-done`) === "true";
+
+      const shouldShow =
+        chapterMatch && textMatch && (!showOnlyIncomplete || !isUnderstood);
+
+      item.style.display = shouldShow ? "" : "none";
+    });
+  }
+
+  input.addEventListener("keyup", filterLessons);
+  chapterFilter.addEventListener("change", filterLessons);
+  incompleteCheckbox.addEventListener("change", filterLessons);
+</script>
+
+</body>
+</html>

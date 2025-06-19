@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ lesson.title }}</title>
+     <link rel="stylesheet" href="{% static 'css/style.css' %}"> 
+</head>
+<body>
+    <h1>{{ lesson.chapter }} {{ lesson.number }}</h1>
+    <h2>{{ lesson.title }}</h2>
+    <p>{{ lesson.content }}</p>
+
+    <hr>
+
+    <!-- ✅ 完了チェックボックス -->
+    <label>
+        <input type="checkbox" id="completed-{{ lesson.pk }}">
+        このレッスンを理解した
+    </label>
+
+    <script>
+        const key = "lesson-" + {{ lesson.pk }} + "-done";
+        const checkbox = document.getElementById("completed-{{ lesson.pk }}");
+
+        // ページ表示時に状態読み込み
+        checkbox.checked = localStorage.getItem(key) === "true";
+
+        // チェック状態を保存
+        checkbox.addEventListener("change", () => {
+            localStorage.setItem(key, checkbox.checked);
+        });
+    </script>
+
+    <br><br>
+    <a href="{% url 'lesson_list' %}">← レッスン一覧に戻る</a>
+</body>
+</html>
