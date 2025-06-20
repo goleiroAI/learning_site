@@ -79,12 +79,12 @@ WSGI_APPLICATION = 'learning_site.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+import dj_database_url
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:postgres@localhost:5432/mysite',
-        conn_max_age=600
-    )
+    'default': dj_database_url.config(conn_max_age=600)
 }
+
 
 
 # Password validation
