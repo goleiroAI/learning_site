@@ -27,7 +27,7 @@ def lesson_detail(request, pk):
         return HttpResponseForbidden("このページは限定公開です。")
 
     lesson = Lesson.objects.get(pk=pk)
-   return render(request, 'lessons/lesson_detail.html', {
+    return render(request, 'lessons/lesson_detail.html', {
     'lesson': lesson,
     'access_key': request.GET.get('access', ''),
 })
