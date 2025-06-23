@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-set -o errexit
 
-pip install -r requirements.txt
-python manage.py collectstatic --no-input
+# マイグレーション処理
+python manage.py makemigrations
 python manage.py migrate
+
+# 初期データ投入
 python manage.py shell < lessons/initial_data.py
 
+# 静的ファイルを収集
+python manage.py collectstatic --no-input
