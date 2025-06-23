@@ -1,3 +1,4 @@
+{% load lesson_filters %}
 {% load static %}
 <!DOCTYPE html>
 <html>
@@ -32,8 +33,30 @@
   {% for lesson in lessons %}
     <li>
       <strong>{{ lesson.chapter }} {{ lesson.number }}</strong><br>
-      <a href="{% url 'lesson_detail' pk=lesson.pk %}">{{ lesson.title }}</a>
-      <span id="status-{{ lesson.pk }}"></span>
+     <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}">
+    {{ lesson.title }}
+     </a>
+
+       <div style="display: flex; gap: 2px; margin-top: 4px;">
+    {% for i in range10 %}
+  {% if i|mul:"10" <= lesson.progress %}
+    <div style="width: 10px; height: 10px; background-color: {{ lesson.progress|get_progress_color }};"></div>
+  {% else %}
+    <div style="width: 10px; height: 10px; background-color: #ddd;"></div>
+  {% endif %}
+{% endfor %}
+
+      {% with box_index=forloop.counter0|add:"1" %}
+        {% if box_index|mul:"10" <= lesson.progress %}
+          <div style="width: 10px; height: 10px;
+            background-color: {{ lesson.progress|get_progress_color }};"></div>
+        {% else %}
+          <div style="width: 10px; height: 10px; background-color: #ddd;"></div>
+        {% endif %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+  <span id="status-{{ lesson.pk }}"></span>
     </li>
   {% endfor %}
 </ul>
