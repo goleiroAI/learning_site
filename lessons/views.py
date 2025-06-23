@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Lesson
 from collections import defaultdict
 from django.http import HttpResponseForbidden
@@ -26,9 +26,9 @@ def lesson_detail(request, pk):
     if key != ACCESS_KEY:
         return HttpResponseForbidden("このページは限定公開です。")
 
-    lesson = Lesson.objects.get(pk=pk)
+    lesson = get_object_or_404(Lesson, pk=pk)
     return render(request, 'lessons/lesson_detail.html', {
-    'lesson': lesson,
-    'access_key': request.GET.get('access', ''),
-})
+        'lesson': lesson,
+        'access_key': key
+    })
 
