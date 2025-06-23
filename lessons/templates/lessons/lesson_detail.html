@@ -33,6 +33,13 @@
     </script>
 
     <br><br>
-    <a href="{% url 'lesson_list' %}">← レッスン一覧に戻る</a>
+   <!-- lesson_detail.html の戻るリンク -->
+<a href="{% url 'lesson_list' %}?access={{ access_key }}">← レッスン一覧に戻る</a>
+
+return render(request, 'lessons/lesson_detail.html', {
+    'lesson': lesson,
+    'access_key': request.GET.get('access', ''),
+})
+
 </body>
 </html>
