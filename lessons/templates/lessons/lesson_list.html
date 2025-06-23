@@ -5,6 +5,47 @@
   <meta charset="UTF-8">
   <title>レッスン一覧</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    .chapter-card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px 0;
+      background-color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .chapter-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .lesson-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .lesson-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-top: 1px solid #eee;
+    }
+
+    .lesson-list li:first-child {
+      border-top: none;
+    }
+
+    .status-chip {
+      padding: 2px 8px;
+      border-radius: 8px;
+      background-color: #e3f2fd;
+      color: #1976d2;
+      font-size: 0.8em;
+    }
+  </style>
 </head>
 <body>
 
@@ -26,25 +67,31 @@
 <input type="text" id="searchInput" placeholder="レッスンを検索..." style="width: 100%; padding: 8px; margin-top: 10px;" />
 
 <!-- 一覧 -->
-<ul>
-  {% for lesson in lessons %}
-    <li>
-      <strong>{{ lesson.chapter }} {{ lesson.number }}</strong><br>
-      <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}">{{ lesson.title }}</a>
-      <span id="status-{{ lesson.pk }}"></span>
-    </li>
+<div class="lesson-container">
+  {% for chapter, lessons in grouped_lessons.items %}
+    <div class="chapter-card">
+      <div class="chapter-title">📘 {{ chapter }}</div>
+      <ul class="lesson-list">
+        {% for lesson in lessons %}
+          <li>
+            <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}" data-chapter="{{ lesson.chapter }}">
+              {{ lesson.number }} {{ lesson.title }}
+            </a>
+            <span class="status-chip" id="status-{{ lesson.pk }}">
+              {% if lesson.progress >= 100 %}
+                ✅ 完了
+              {% else %}
+                進捗 {{ lesson.progress }}%
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
   {% endfor %}
-</ul>
+</div>
 
 <script>
-  {% for lesson in lessons %}
-    const done{{ lesson.pk }} = localStorage.getItem("lesson-{{ lesson.pk }}-done");
-    const statusEl{{ lesson.pk }} = document.getElementById("status-{{ lesson.pk }}");
-    if (done{{ lesson.pk }} === "true") {
-      statusEl{{ lesson.pk }}.textContent = " ✅理解";
-    }
-  {% endfor %}
-
   const input = document.getElementById("searchInput");
   const chapterFilter = document.getElementById("chapterFilter");
   const incompleteCheckbox = document.getElementById("incompleteOnly");
@@ -53,14 +100,14 @@
     const filter = input.value.toLowerCase();
     const selectedChapter = chapterFilter.value;
     const showOnlyIncomplete = incompleteCheckbox.checked;
-    const items = document.querySelectorAll("ul li");
+    const items = document.querySelectorAll(".lesson-list li");
 
     items.forEach((item) => {
       const text = item.textContent.toLowerCase();
-      const chapterMatch = !selectedChapter || text.includes(selectedChapter);
+      const chapterMatch = !selectedChapter || text.includes(selectedChapter.toLowerCase());
       const textMatch = text.includes(filter);
-      const pkMatch = item.querySelector("a")?.getAttribute("href")?.match(/\/(\d+)\//);
-      const lessonId = pkMatch ? pkMatch[1] : null;
+      const link = item.querySelector("a");
+      const lessonId = link?.getAttribute("href")?.match(/\/(\d+)\//)?.[1];
       const isUnderstood = localStorage.getItem(`lesson-${lessonId}-done`) === "true";
 
       const shouldShow = chapterMatch && textMatch && (!showOnlyIncomplete || !isUnderstood);
@@ -71,8 +118,16 @@
   input.addEventListener("keyup", filterLessons);
   chapterFilter.addEventListener("change", filterLessons);
   incompleteCheckbox.addEventListener("change", filterLessons);
+
+  // 状態表示
+  {% for lesson in lessons %}
+    const done{{ lesson.pk }} = localStorage.getItem("lesson-{{ lesson.pk }}-done");
+    const statusEl{{ lesson.pk }} = document.getElementById("status-{{ lesson.pk }}");
+    if (done{{ lesson.pk }} === "true") {
+      statusEl{{ lesson.pk }}.textContent = "✅理解";
+    }
+  {% endfor %}
 </script>
 
 </body>
 </html>
-
