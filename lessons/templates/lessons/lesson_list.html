@@ -14,30 +14,25 @@
       background-color: #fff;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
-
     .chapter-title {
       font-size: 1.3em;
       font-weight: bold;
       margin-bottom: 10px;
       color: #333;
     }
-
     .lesson-list {
       list-style: none;
       padding: 0;
     }
-
     .lesson-list li {
       display: flex;
       justify-content: space-between;
       padding: 8px 10px;
       border-top: 1px solid #eee;
     }
-
     .lesson-list li:first-child {
       border-top: none;
     }
-
     .status-chip {
       padding: 2px 8px;
       border-radius: 8px;
@@ -45,81 +40,40 @@
       color: #1976d2;
       font-size: 0.8em;
     }
+    .no-lessons {
+      padding: 24px;
+      color: #777;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
 <h1>レッスン一覧</h1>
 
-<!-- ナビ -->
-<select id="chapterFilter" style="margin-bottom: 10px;">
-  <option value="">すべての章</option>
-  <option value="第1章">第1章</option>
-  <option value="第2章">第2章</option>
-  <option value="第3章">第3章</option>
-  <option value="第4章">第4章</option>
-  <option value="第5章">第5章</option>
-</select>
-<label style="margin-left: 10px;">
-  <input type="checkbox" id="incompleteOnly" />
-  未理解のレッスンだけ表示
-</label>
-<input type="text" id="searchInput" placeholder="レッスンを検索..." style="width: 100%; padding: 8px; margin-top: 10px;" />
-
-<!-- 一覧 -->
 <div class="lesson-container">
-  {% for chapter, lessons in grouped_lessons.items %}
-    <div class="chapter-card">
-      <div class="chapter-title">📘 {{ chapter }}</div>
-      <ul class="lesson-list">
-        {% for lesson in lessons %}
-          <li>
-            <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}" data-chapter="{{ lesson.chapter }}">
-              {{ lesson.number }} {{ lesson.title }}
-            </a>
-            <span class="status-chip" id="status-{{ lesson.pk }}">
-              {% if lesson.progress >= 100 %}
-                ✅ 完了
-              {% else %}
-                進捗 {{ lesson.progress }}%
-              {% endif %}
-            </span>
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
-  {% endfor %}
+  {% if grouped_lessons %}
+    {% for chapter, lessons in grouped_lessons.items %}
+      <div class="chapter-card">
+        <div class="chapter-title">📘 {{ chapter }}</div>
+        <ul class="lesson-list">
+          {% for lesson in lessons %}
+            <li>
+              <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}">
+                {{ lesson.number }} {{ lesson.title }}
+              </a>
+              <span class="status-chip" id="status-{{ lesson.pk }}"></span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="no-lessons">現在表示するレッスンがありません。</p>
+  {% endif %}
 </div>
 
 <script>
-  const input = document.getElementById("searchInput");
-  const chapterFilter = document.getElementById("chapterFilter");
-  const incompleteCheckbox = document.getElementById("incompleteOnly");
-
-  function filterLessons() {
-    const filter = input.value.toLowerCase();
-    const selectedChapter = chapterFilter.value;
-    const showOnlyIncomplete = incompleteCheckbox.checked;
-    const items = document.querySelectorAll(".lesson-list li");
-
-    items.forEach((item) => {
-      const text = item.textContent.toLowerCase();
-      const chapterMatch = !selectedChapter || text.includes(selectedChapter.toLowerCase());
-      const textMatch = text.includes(filter);
-      const link = item.querySelector("a");
-      const lessonId = link?.getAttribute("href")?.match(/\/(\d+)\//)?.[1];
-      const isUnderstood = localStorage.getItem(`lesson-${lessonId}-done`) === "true";
-
-      const shouldShow = chapterMatch && textMatch && (!showOnlyIncomplete || !isUnderstood);
-      item.style.display = shouldShow ? "" : "none";
-    });
-  }
-
-  input.addEventListener("keyup", filterLessons);
-  chapterFilter.addEventListener("change", filterLessons);
-  incompleteCheckbox.addEventListener("change", filterLessons);
-
-  // 状態表示
   {% for lesson in lessons %}
     const done{{ lesson.pk }} = localStorage.getItem("lesson-{{ lesson.pk }}-done");
     const statusEl{{ lesson.pk }} = document.getElementById("status-{{ lesson.pk }}");
