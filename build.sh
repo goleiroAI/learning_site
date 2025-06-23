@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# 必要なパッケージをインストール（←これが超重要）
+pip install --upgrade pip
+pip install -r requirements.txt
+
 # マイグレーション処理
 python manage.py makemigrations
 python manage.py migrate
