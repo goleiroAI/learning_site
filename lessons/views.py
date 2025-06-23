@@ -3,7 +3,7 @@ from .models import Lesson
 from collections import defaultdict
 from django.http import HttpResponseForbidden
 
-ACCESS_KEY = "abc123"  # このキーだけ許可
+ACCESS_KEY = "abc123"
 
 def lesson_list(request):
     key = request.GET.get("access", "")
