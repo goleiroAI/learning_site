@@ -6,33 +6,22 @@
   <title>レッスン一覧</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <style>
-    .chapter-card {
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 20px 0;
-      background-color: #fff;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-    .chapter-title {
-      font-size: 1.3em;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #333;
-    }
-    .lesson-list {
+    ul {
       list-style: none;
       padding: 0;
     }
-    .lesson-list li {
+
+    li {
       display: flex;
       justify-content: space-between;
       padding: 8px 10px;
       border-top: 1px solid #eee;
     }
-    .lesson-list li:first-child {
+
+    li:first-child {
       border-top: none;
     }
+
     .status-chip {
       padding: 2px 8px;
       border-radius: 8px;
@@ -40,6 +29,7 @@
       color: #1976d2;
       font-size: 0.8em;
     }
+
     .no-lessons {
       padding: 24px;
       color: #777;
@@ -51,27 +41,20 @@
 
 <h1>レッスン一覧</h1>
 
-<div class="lesson-container">
-  {% if grouped_lessons %}
-    {% for chapter, lessons in grouped_lessons.items %}
-      <div class="chapter-card">
-        <div class="chapter-title">📘 {{ chapter }}</div>
-        <ul class="lesson-list">
-          {% for lesson in lessons %}
-            <li>
-              <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}">
-                {{ lesson.number }} {{ lesson.title }}
-              </a>
-              <span class="status-chip" id="status-{{ lesson.pk }}"></span>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+{% if lessons %}
+  <ul>
+    {% for lesson in lessons %}
+      <li>
+        <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}">
+          {{ lesson.chapter }} {{ lesson.number }} {{ lesson.title }}
+        </a>
+        <span class="status-chip" id="status-{{ lesson.pk }}"></span>
+      </li>
     {% endfor %}
-  {% else %}
-    <p class="no-lessons">現在表示するレッスンがありません。</p>
-  {% endif %}
-</div>
+  </ul>
+{% else %}
+  <p class="no-lessons">現在表示するレッスンがありません。</p>
+{% endif %}
 
 <script>
   {% for lesson in lessons %}
