@@ -8,8 +8,8 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 
-# 初期データ投入
-python manage.py shell < lessons/initial_data.py
+# 初期データ投入 ← ここを修正！
+python manage.py load_initial_data
 
 # 静的ファイルを収集
 python manage.py collectstatic --no-input
