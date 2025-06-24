@@ -32,3 +32,4 @@ def lesson_detail(request, pk):
         'access_key': key
     })
 
+
