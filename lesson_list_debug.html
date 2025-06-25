@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>これは lesson_list_debug.html です</h1>
+
+<ul>
+  {% for k, v in grouped_lessons.items %}
+    <li>{{ k }} - {{ v|length }}件</li>
+  {% empty %}
+    <li>grouped_lessons は空</li>
+  {% endfor %}
+</ul>
+
+</body>
+</html>
