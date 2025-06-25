@@ -13,12 +13,23 @@ def lesson_list(request):
     lessons = Lesson.objects.all().order_by('chapter', 'number')
     grouped_lessons = defaultdict(list)
     for lesson in lessons:
-        grouped_lessons[lesson.chapter].append(lesson)
+        chapter_cleaned = (lesson.chapter or "").strip().replace("：", ":")
+        grouped_lessons[chapter_cleaned].append(lesson)
+
+    # ✅ 各章に画像を対応させる辞書
+    chapter_images = {
+        "第1章:コンプライアンスと法令": "images/ch1.jpg",
+        "第2章:プレミアムウォーターの商品知識": "images/ch2.jpg",
+        "第3章:トークスクリプトをマスターしよう": "images/ch3.jpg",
+        "第4章:39cloudを操作する": "images/ch4.jpg",
+        "第5章:実践ロープレとログ学習": "images/ch5.jpg",
+}
 
     return render(request, 'lessons/lesson_list.html', {
-        'grouped_lessons': grouped_lessons,
         'lessons': lessons,
-        'access_key': key
+        'g_lessons': dict(grouped_lessons),
+        'chapter_images': chapter_images,  
+        'access_key': key,
     })
 
 def lesson_detail(request, pk):
@@ -29,7 +40,5 @@ def lesson_detail(request, pk):
     lesson = get_object_or_404(Lesson, pk=pk)
     return render(request, 'lessons/lesson_detail.html', {
         'lesson': lesson,
-        'access_key': key
+        'access_key': key,
     })
-
-
