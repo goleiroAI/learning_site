@@ -26,8 +26,11 @@ SECRET_KEY = 'django-insecure-_s59yjoxa1#_y7-l#ye*=507)1ytb#wy%pm#ih8)us#!d5x!as
 DEBUG = True
 
 ALLOWED_HOSTS = [
-     'learning-site-5ri2.onrender.com', 
+    '127.0.0.1',
+    'localhost',
+    'learning-site-5ri2.onrender.com',  
 ]
+
 
 
 # Application definition
