@@ -1,4 +1,5 @@
 {% load static %}
+{% load dict_filters %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,77 +7,56 @@
   <title>レッスン一覧</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <style>
-    body {
-      background-color: #f9f9f9;
-      font-family: sans-serif;
-    }
-    .filter-box {
-      background: #fff;
-      padding: 12px;
-      border: 1px solid #ddd;
-      margin-bottom: 16px;
-      border-radius: 8px;
-    }
-    .chapter-card {
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 20px 0;
-      background-color: #fff;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-    .chapter-title {
-      font-size: 1.3em;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #333;
-    }
-    .lesson-list {
-      list-style: none;
-      padding: 0;
-    }
-    .lesson-list li {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 10px;
-      border-top: 1px solid #eee;
-    }
-    .lesson-list li:first-child {
-      border-top: none;
-    }
-    .status-chip {
-      padding: 2px 8px;
-      border-radius: 8px;
-      background-color: #e3f2fd;
-      color: #1976d2;
-      font-size: 0.8em;
-    }
+    #chapter-filter { width: 120px; padding: 3px; font-size: 0.95rem; }
+    body { font-family: "Segoe UI", sans-serif; background-color: #f9f9f9; margin: 20px; }
+    .filter-box { background: #fff; padding: 12px; border: 1px solid #ddd; margin-bottom: 16px; border-radius: 8px; }
+    .lesson-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; }
+    .chapter-card { flex: 0 0 440px; background-color: #e7f3fa; background: linear-gradient(to bottom right, #e0f7fa, #f0fbff); border-radius: 12px; box-shadow: 0 0px 6px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+    .chapter-visual { height: 120px; background-size: cover; background-position: center; position: relative; z-index: 0; }
+    .chapter-label { background: rgba(0, 0, 0, 0.5); color: white; padding: 10px; font-weight: bold; font-size: 1rem; position: absolute; bottom: 0; width: 100%; }
+    .lesson-list { list-style: none; padding-left: 0; margin: 0; }
+    .lesson-list li { padding: 6px 10px; border-bottom: 1px solid #eee; }
+    .lesson-list li:last-child { border-bottom: none; }
+    .lesson-number { color: #1976d2; font-weight: bold; margin-right: 6px; }
+    .status-chip { margin-left: 10px; color: #388e3c; font-size: 0.9em; font-weight: bold; }
+    .lesson-item.completed { background-color: #e3f2fd; border-radius: 4px; }
+    .hidden { display: none; }
+    .chapter-visual::before {content: ""; position: absolute;inset: 0; background-color: rgba(0, 0, 0, 0.45);  /* ← 半透明の黒 */ z-index: 1;}
+    .chapter-label {position: absolute;bottom: 0;width: 100%;padding: 10px;color: white;font-weight: bold;font-size: 1rem;z-index: 2; }
   </style>
 </head>
 <body>
-
 <h1>レッスン一覧</h1>
-
 <div class="filter-box">
-  <select>
-    <option>すべての章</option>
-  </select>
-  <label style="margin-left: 10px;">
-    <input type="checkbox" />
+  <label>
+    章を選ぶ：
+    <select id="chapter-filter">
+      <option value="all">すべての章</option>
+      {% for chapter in g_lessons.keys %}
+        <option value="{{ chapter }}">{{ chapter }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label style="margin-left: 3px;">
+    <input type="checkbox" id="filter-unchecked">
     未理解のレッスンだけ表示
   </label>
-  <input type="text" placeholder="レッスンを検索..." style="width: 100%; padding: 8px; margin-top: 10px;" />
+  <input type="text" id="search-box" placeholder="用語を検索..." style="width: 30%; padding: 4px; margin-left: 10px;">
 </div>
 
 <div class="lesson-container">
-  {% for chapter, lessons in grouped_lessons.items %}
-    <div class="chapter-card">
-      <div class="chapter-title">📘 {{ chapter }}</div>
+  {% for chapter, group in g_lessons.items %}
+    <div class="chapter-card" data-chapter="{{ chapter }}">
+      <div class="chapter-visual" style="background-image: url('{% static chapter_images|dict_get:chapter %}');">
+        <div class="chapter-label">
+          {{ chapter }}
+        </div>
+      </div>
       <ul class="lesson-list">
-        {% for lesson in lessons %}
-          <li>
+        {% for lesson in group %}
+          <li class="lesson-item" data-pk="{{ lesson.pk }}" data-chapter="{{ chapter }}" data-title="{{ lesson.title|lower }}">
             <a href="{% url 'lesson_detail' pk=lesson.pk %}?access={{ access_key }}">
-              {{ lesson.number }} {{ lesson.title }}
+              <span class="lesson-number">{{ lesson.number }}</span> {{ lesson.title }}
             </a>
             <span class="status-chip" id="status-{{ lesson.pk }}"></span>
           </li>
@@ -87,14 +67,43 @@
 </div>
 
 <script>
-  {% for lesson in lessons %}
-    const done{{ lesson.pk }} = localStorage.getItem("lesson-{{ lesson.pk }}-done");
-    const statusEl{{ lesson.pk }} = document.getElementById("status-{{ lesson.pk }}");
-    if (done{{ lesson.pk }} === "true") {
-      statusEl{{ lesson.pk }}.textContent = "✅理解";
-    }
-  {% endfor %}
-</script>
+  const filterCheckbox = document.getElementById("filter-unchecked");
+  const chapterSelect = document.getElementById("chapter-filter");
+  const searchBox = document.getElementById("search-box");
+  const items = document.querySelectorAll(".lesson-item");
+  const allChapters = document.querySelectorAll(".chapter-card");
 
+  function applyFilters() {
+    const selectedChapter = chapterSelect.value;
+    const keyword = searchBox.value.trim().toLowerCase();
+
+    items.forEach(item => {
+      const pk = item.dataset.pk;
+      const chapter = item.dataset.chapter;
+      const title = item.dataset.title;
+      const done = localStorage.getItem("lesson-" + pk + "-done") === "true";
+
+      const matchChapter = selectedChapter === "all" || chapter === selectedChapter;
+      const matchKeyword = title.includes(keyword);
+      const matchDone = !(filterCheckbox.checked && done === true);
+
+      item.classList.toggle("hidden", !(matchChapter && matchKeyword && matchDone));
+      item.classList.toggle("completed", done);
+
+      const statusEl = document.getElementById("status-" + pk);
+      if (statusEl) statusEl.textContent = done ? "✅ 理解" : "";
+    });
+
+    allChapters.forEach(card => {
+      const visible = card.querySelectorAll(".lesson-item:not(.hidden)").length > 0;
+      card.style.display = visible ? "block" : "none";
+    });
+  }
+
+  chapterSelect.addEventListener("change", applyFilters);
+  searchBox.addEventListener("input", applyFilters);
+  filterCheckbox.addEventListener("change", applyFilters);
+  window.addEventListener("DOMContentLoaded", applyFilters);
+</script>
 </body>
 </html>
