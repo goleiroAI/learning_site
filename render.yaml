@@ -1,15 +1,11 @@
-databases:
-  - name: learningsitedb
-    plan: free
-    databaseName: learningsite
-    user: learningsite
-
 services:
   - type: web
     plan: free
     name: learningsite
     runtime: python
-    buildCommand: './build.sh'
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
     startCommand: 'python -m gunicorn learning_site.asgi:application -k uvicorn.workers.UvicornWorker'
     envVars:
       - key: DATABASE_URL
